@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Leaflet Map Example</title>
+
+  <!-- Leaflet 스타일 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    /* html, body를 전체 100%로 설정 */
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* 지도 스타일 */
+    #map {
+      width: 100%;
+      height: 100%; /* 화면 전체 채우기 */
+      min-height: 300px;
+    }
+
+    a.popup-button {
+      display: block;
+      background: #000;
+      color: #fff !important;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 20px;
+      text-decoration: none !important;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    a.popup-button:hover {
+      background: #fff;
+      color: #000 !important;
+      border: 1px solid #000;
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      #map {
+        height: 100%;
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 지도 들어갈 자리 -->
+<div id="map"></div>
+
+<!-- Leaflet 스크립트 -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  function createPcMainMap(containerId, projects) {
+    const oldMapContainer = document.getElementById(containerId);
+
+    // 기존 지도 삭제
+    if (window.pcMainMap) {
+      window.pcMainMap.remove();
+      window.pcMainMap = null;
+    }
+
+    // div 삭제하고 새로 생성
+    if (oldMapContainer) {
+      const parent = oldMapContainer.parentNode;
+      const newMapContainer = document.createElement('div');
+      newMapContainer.id = containerId;
+      newMapContainer.style.width = '100%';
+      newMapContainer.style.height = '100%'; // 화면 전체
+      newMapContainer.style.minHeight = '300px';
+      parent.replaceChild(newMapContainer, oldMapContainer);
+    }
+
+    // 새 div로 새 지도 생성
+    window.pcMainMap = L.map(containerId);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors, © CartoDB'
+    }).addTo(window.pcMainMap);
+
+    // 마커 추가
+    const markers = projects.map(project => {
+      const marker = L.marker([project.lat, project.lng]).addTo(window.pcMainMap);
+	marker.bindPopup(`
+  <div style="padding:15px;">
+    <div style="font-size:24px;font-weight:bold;margin-bottom:20px;">${project.title}</div>
+    <div style="font-size:20px;line-height:1.5;margin-bottom:15px;">${project.description}</div>
+    <a href="${project.link}" target="_blank" class="popup-button">Discover More</a>
+  </div>
+`);
+
+      return marker;
+    });
+
+    if (markers.length > 0) {
+      const group = L.featureGroup(markers);
+      window.pcMainMap.fitBounds(group.getBounds(), { padding: [30, 30] });
+    }
+
+    setTimeout(() => {
+      window.pcMainMap.invalidateSize();
+    }, 300);
+  }
+
+  // 페이지 로드되면 지도 생성
+  document.addEventListener('DOMContentLoaded', function() {
+    const projects = [
+      { title: "Sumbawa Island, Indonesia", description: "Establish and restore Mangrove forests to help recover marine ecosystems and biodiversity, while absorbing carbon to combat climate change", link: "https://en.faafhub.com/SumbawaIndonesia", lat: -8.7035, lng: 117.4305 },
+      { title: "Red River Delta, Viet Nam", description: "Establish and restore Mangrove forests to protect local communities from coastal erosion and natural disasters, while contributing to biodiversity conservation", link: "https://en.faafhub.com/RedRiverDeltaVietNam", lat: 20.9239, lng: 105.6710 },
+      { title: "Abai, Kazakhstan", description: "Restore 60,000 hectares of wildfire-damaged land to revive burned forests and recover ecosystem services", link: "https://en.faafhub.com/AbaiKazakhstan", lat: 49.7116, lng: 80.3560 },
+      { title: "Batsumber, Mongolia", description: "Revive forests lost to repeated wildfires to absorb carbon and prevent desertification", link: "https://en.faafhub.com/BatsumberMongolia", lat: 48.0017, lng: 106.2078 },
+      { title: "Manatuto, Timor-Leste", description: "Restore degraded forests through forest landscape restoration and introduce agroforestry to improve local livelihoods, pursuing both economic growth and forest recovery", link: "https://en.faafhub.com/ManatutoTimorleste", lat: -8.8202, lng: 126.0320 },
+      { title: "Champasak, Lao PDR", description: "Building on the successful restoration of 2,800 hectares of degraded land in the Champasak region, expand restoration efforts through agroforestry, while developing alternative sources of income", link: "https://en.faafhub.com/ChampasakLao", lat: 14.8770, lng: 105.8220 }
+    ];
+
+    createPcMainMap('map', projects);
+  });
+</script>
+
+</body>
+</html>
